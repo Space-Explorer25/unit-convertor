@@ -78,3 +78,19 @@ main {
 }
 span{
 color: green;}
+
+@media screen and (max-width: 480px) {
+input{
+    width: 40vw; font-size:10vw;}
+button{
+    width: 30vw;}
+.out{
+display: flex;
+flex-direction: column;}
+.converted{
+    width: 80vw;margin-left:-1vw;
+.container{
+    height: 50vh;
+width: 82vw;
+}}
+}
