@@ -1,4 +1,3 @@
-**Not responsive for Phones yet*
 ![Logo](https://ucarecdn.com/77d371fc-e433-493b-9317-a9a5e5ad4a5f/outputonlinepngtools.png)
 
 # Unit Converter
