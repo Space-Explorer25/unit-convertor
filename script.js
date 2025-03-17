@@ -1,4 +1,3 @@
-// Unit Conversion Data
 const unitData = {
     length: {
         units: [
@@ -124,7 +123,6 @@ const unitData = {
     }
 };
 
-// DOM Elements
 const categoryButtons = document.querySelectorAll('.category-btn');
 const fromUnitSelect = document.getElementById('fromUnit');
 const toUnitSelect = document.getElementById('toUnit');
@@ -137,54 +135,39 @@ const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.querySelector('.clear-history-btn');
 const themeToggle = document.querySelector('.theme-toggle');
 
-// Current state
 let currentCategory = 'length';
 let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
 
-// Initialize the app
 function init() {
     loadCategory(currentCategory);
     loadHistory();
     setupEventListeners();
 }
 
-// Load category units into select dropdowns
 function loadCategory(category) {
     currentCategory = category;
-    
-    // Clear existing options
     fromUnitSelect.innerHTML = '';
     toUnitSelect.innerHTML = '';
-    
-    // Add new options based on category
     unitData[category].units.forEach(unit => {
         const fromOption = document.createElement('option');
         fromOption.value = unit.id;
         fromOption.textContent = unit.name;
         fromUnitSelect.appendChild(fromOption);
-        
         const toOption = document.createElement('option');
         toOption.value = unit.id;
         toOption.textContent = unit.name;
         toUnitSelect.appendChild(toOption);
     });
-    
-    // Set default selections (first and second options)
     fromUnitSelect.selectedIndex = 0;
     toUnitSelect.selectedIndex = unitData[category].units.length > 1 ? 1 : 0;
-    
-    // Clear inputs
     fromValueInput.value = '';
     toValueInput.value = '';
     formulaDisplay.textContent = '-';
-    
-    // Update active category button
     categoryButtons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.category === category);
     });
 }
 
-// Convert between units
 function convert() {
     const fromValue = parseFloat(fromValueInput.value);
     if (isNaN(fromValue)) {
@@ -192,41 +175,27 @@ function convert() {
         formulaDisplay.textContent = '-';
         return;
     }
-    
     const fromUnit = fromUnitSelect.value;
     const toUnit = toUnitSelect.value;
     const category = currentCategory;
-    
     let result;
     let formula;
-    
-    // Special case for temperature
     if (category === 'temperature') {
         result = convertTemperature(fromValue, fromUnit, toUnit);
         formula = getTemperatureFormula(fromUnit, toUnit);
     } else {
-        // Standard conversion using factors
         const fromFactor = unitData[category].units.find(u => u.id === fromUnit).factor;
         const toFactor = unitData[category].units.find(u => u.id === toUnit).factor;
-        
-        // Convert to base unit then to target unit
         result = (fromValue * fromFactor) / toFactor;
         formula = `(${fromValue} × ${fromFactor}) ÷ ${toFactor} = ${result.toFixed(6)}`;
     }
-    
-    // Display result with appropriate precision
     toValueInput.value = formatResult(result);
     formulaDisplay.textContent = formula;
-    
-    // Add to history
     addToHistory(fromValue, fromUnit, toUnit, result, category);
 }
 
-// Special conversion for temperature
 function convertTemperature(value, fromUnit, toUnit) {
     if (fromUnit === toUnit) return value;
-    
-    // Convert to Celsius first (as base unit)
     let celsius;
     if (fromUnit === 'c') {
         celsius = value;
@@ -235,8 +204,6 @@ function convertTemperature(value, fromUnit, toUnit) {
     } else if (fromUnit === 'k') {
         celsius = value - 273.15;
     }
-    
-    // Convert from Celsius to target unit
     if (toUnit === 'c') {
         return celsius;
     } else if (toUnit === 'f') {
@@ -246,10 +213,8 @@ function convertTemperature(value, fromUnit, toUnit) {
     }
 }
 
-// Get formula string for temperature conversion
 function getTemperatureFormula(fromUnit, toUnit) {
     if (fromUnit === toUnit) return 'value';
-    
     if (fromUnit === 'c' && toUnit === 'f') return '(value × 9/5) + 32';
     if (fromUnit === 'c' && toUnit === 'k') return 'value + 273.15';
     if (fromUnit === 'f' && toUnit === 'c') return '(value - 32) × 5/9';
@@ -258,28 +223,21 @@ function getTemperatureFormula(fromUnit, toUnit) {
     if (fromUnit === 'k' && toUnit === 'f') return '(value - 273.15) × 9/5 + 32';
 }
 
-// Format result to appropriate precision
 function formatResult(value) {
     if (Math.abs(value) < 0.000001) return '0';
     if (Math.abs(value) >= 1000000) return value.toExponential(6);
-    
-    // Determine appropriate decimal places
     const absValue = Math.abs(value);
     let decimalPlaces = 2;
-    
     if (absValue < 0.01) decimalPlaces = 6;
     else if (absValue < 0.1) decimalPlaces = 5;
     else if (absValue < 1) decimalPlaces = 4;
     else if (absValue < 10) decimalPlaces = 3;
-    
     return value.toFixed(decimalPlaces);
 }
 
-// Add conversion to history
 function addToHistory(fromValue, fromUnit, toUnit, result, category) {
     const fromUnitName = unitData[category].units.find(u => u.id === fromUnit).name;
     const toUnitName = unitData[category].units.find(u => u.id === toUnit).name;
-    
     const historyItem = {
         id: Date.now(),
         category,
@@ -291,25 +249,16 @@ function addToHistory(fromValue, fromUnit, toUnit, result, category) {
         result: formatResult(result),
         timestamp: new Date().toISOString()
     };
-    
-    conversionHistory.unshift(historyItem); // Add to beginning of array
-    
-    // Limit history to 10 items
+    conversionHistory.unshift(historyItem);
     if (conversionHistory.length > 10) {
         conversionHistory.pop();
     }
-    
-    // Save to localStorage
     localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
-    
-    // Update UI
     loadHistory();
 }
 
-// Load history from localStorage
 function loadHistory() {
     historyList.innerHTML = '';
-    
     if (conversionHistory.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.textContent = 'No conversion history yet';
@@ -317,114 +266,74 @@ function loadHistory() {
         historyList.appendChild(emptyMessage);
         return;
     }
-    
     conversionHistory.forEach(item => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
-        
         const itemText = document.createElement('div');
         itemText.className = 'history-item-text';
         itemText.textContent = `${item.fromValue} ${item.fromUnit} = ${item.result} ${item.toUnit}`;
-        
         const itemActions = document.createElement('div');
         itemActions.className = 'history-item-actions';
-        
         const reloadBtn = document.createElement('button');
         reloadBtn.innerHTML = '<i class="fas fa-redo"></i>';
         reloadBtn.title = 'Reload this conversion';
         reloadBtn.addEventListener('click', () => reloadConversion(item));
-        
         itemActions.appendChild(reloadBtn);
         historyItem.appendChild(itemText);
         historyItem.appendChild(itemActions);
-        
         historyList.appendChild(historyItem);
     });
 }
 
-// Reload a conversion from history
 function reloadConversion(item) {
-    // Switch to the correct category
     loadCategory(item.category);
-    
-    // Set the values and units
     fromValueInput.value = item.fromValue;
-    
-    // Find the index of the units in the current selects
     const fromUnitIndex = Array.from(fromUnitSelect.options).findIndex(option => option.value === item.fromUnit);
     const toUnitIndex = Array.from(toUnitSelect.options).findIndex(option => option.value === item.toUnit);
-    
     if (fromUnitIndex >= 0) fromUnitSelect.selectedIndex = fromUnitIndex;
     if (toUnitIndex >= 0) toUnitSelect.selectedIndex = toUnitIndex;
-    
-    // Perform the conversion
     convert();
 }
 
-// Clear all history
 function clearHistory() {
     conversionHistory = [];
     localStorage.removeItem('conversionHistory');
     loadHistory();
 }
 
-// Toggle between light and dark theme
 function toggleTheme() {
     document.body.classList.toggle('dark-theme');
-    
     const moonIcon = themeToggle.querySelector('.fa-moon');
     const sunIcon = themeToggle.querySelector('.fa-sun');
-    
     moonIcon.classList.toggle('active');
     sunIcon.classList.toggle('active');
-    
-    // Save theme preference
     const isDarkTheme = document.body.classList.contains('dark-theme');
     localStorage.setItem('darkTheme', isDarkTheme);
 }
 
-// Swap from and to units
 function swapUnits() {
     const tempIndex = fromUnitSelect.selectedIndex;
     fromUnitSelect.selectedIndex = toUnitSelect.selectedIndex;
     toUnitSelect.selectedIndex = tempIndex;
-    
     if (fromValueInput.value) {
         convert();
     }
 }
 
-// Setup all event listeners
 function setupEventListeners() {
-    // Category buttons
     categoryButtons.forEach(btn => {
         btn.addEventListener('click', () => loadCategory(btn.dataset.category));
     });
-    
-    // Convert button
     convertBtn.addEventListener('click', convert);
-    
-    // Input field (convert on input)
     fromValueInput.addEventListener('input', convert);
-    
-    // Unit select changes
     fromUnitSelect.addEventListener('change', convert);
     toUnitSelect.addEventListener('change', convert);
-    
-    // Swap button
     swapBtn.addEventListener('click', swapUnits);
-    
-    // Clear history button
     clearHistoryBtn.addEventListener('click', clearHistory);
-    
-    // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
-    
-    // Apply saved theme preference
     if (localStorage.getItem('darkTheme') === 'true') {
         toggleTheme();
     }
 }
-
 
 document.addEventListener('DOMContentLoaded', init);
