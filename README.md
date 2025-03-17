@@ -58,7 +58,7 @@ A sleek, responsive web application for converting between different units of me
 No build process or dependencies required. Simply clone the repository and open `index.html` in a web browser.
 
 ```
-git clone <repository-url>
+git clone https://github.com/unshreif/unit-convertor
 cd unit-converter
 ```
 
