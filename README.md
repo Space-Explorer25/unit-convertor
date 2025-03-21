@@ -11,6 +11,7 @@ A sleek, responsive web application for converting between different units of me
   - Volume (ml, l, gal, pt, qt, fl oz, cup)
   - Area (mm², cm², m², km², in², ft², acre, hectare)
   - Time (ms, s, min, h, d, wk, mo, yr)
+  - Currency (USD, EUR, GBP, JPY, CNY, INR, AUD, CAD, EGP) with real-time exchange rates
 
 - **User-Friendly Interface**:
   - Clean, modern design
@@ -24,25 +25,31 @@ A sleek, responsive web application for converting between different units of me
   - Conversion history (stores up to 10 recent conversions)
   - Ability to reload previous conversions
   - Dark/light theme toggle with preference saving
+  - Real-time currency exchange rates via Exchange Rates API (auto-updated every 24 hours)
 
 ## Technologies Used
 
 - HTML5
 - CSS3 (with CSS variables for theming)
 - Vanilla JavaScript
-- Local Storage API for saving preferences and history
-- Font Awesome for icons
+- Service Workers (PWA support)
+- Local Storage API for preferences/history
+- Exchange Rates API (real-time currency data)
+- Font Awesome icons
 - Google Fonts (Poppins)
 
 ## Project Structure
 
-- `index.html` - Main HTML structure
-- `styles.css` - All styling with responsive design
-- `script.js` - JavaScript functionality including:
-  - Unit conversion logic
-  - UI interaction handling
-  - Local storage management
-  - Theme switching
+- `index.html` - Main application entry point
+- `styles.css` - Responsive styling with theme variables
+- `script.js` - Core functionality including:
+  - Unit conversion algorithms
+  - Real-time currency exchange rates
+  - Theme management
+  - Conversion history
+  - PWA installation handling
+- `sw.js` - Service Worker for offline functionality
+- `manifest.json` - PWA metadata (auto-generated)
 
 ## How to Use
 
@@ -53,9 +60,38 @@ A sleek, responsive web application for converting between different units of me
 5. Previous conversions are saved in the history section
 6. Toggle between dark and light themes using the sun/moon icon
 
+## Key Features
+
+- 📱 **PWA Support** - Installable web app with offline functionality
+- 🌓 **Theme Switching** - Light/dark mode with system preference detection
+- 🔄 **Real-time Currency Rates** - Auto-updating exchange rates via API
+- 📚 **6+ Measurement Categories** - Length, weight, temperature, currency etc
+- ⏳ **Conversion History** - Local storage of recent conversions
+- 📱 **Responsive Design** - Optimized for mobile & desktop
+- 🔄 **Service Worker** - Caches assets for fast reloads & offline use
+
 ## Setup
 
-No build process or dependencies required. Simply clone the repository and open `index.html` in a web browser.
+1. Clone the repository:
+```bash
+git clone https://github.com/unshreif/unit-converter.git
+cd unit-converter
+```
+2. Install dependencies:
+```bash
+npm install -g http-server
+```
+3. Start development server:
+```bash
+npx http-server -o
+```
+
+The app will automatically:
+- Register service worker for offline use
+- Fetch latest currency exchange rates
+- Apply your preferred theme settings
+
+For production deployment, ensure HTTPS is enabled for full PWA functionality.
 
 ```
 git clone <repository-url>

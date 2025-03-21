@@ -1,4 +1,19 @@
 const unitData = {
+    currency: {
+        units: [
+            { id: 'USD', name: 'US Dollar (USD)', factor: 1 },
+            { id: 'EUR', name: 'Euro (EUR)', factor: null },
+            { id: 'GBP', name: 'British Pound (GBP)', factor: null },
+            { id: 'JPY', name: 'Japanese Yen (JPY)', factor: null },
+            { id: 'CNY', name: 'Chinese Yuan (CNY)', factor: null },
+            { id: 'INR', name: 'Indian Rupee (INR)', factor: null },
+            { id: 'AUD', name: 'Australian Dollar (AUD)', factor: null },
+            { id: 'CAD', name: 'Canadian Dollar (CAD)', factor: null },
+            { id: 'EGP', name: 'Egyptian Pound (EGP)', factor: null }
+        ],
+        baseUnit: 'USD',
+        formulas: {}
+    },
     length: {
         units: [
             { id: 'mm', name: 'Millimeters (mm)', factor: 0.001 },
@@ -138,16 +153,87 @@ const themeToggle = document.querySelector('.theme-toggle');
 let currentCategory = 'length';
 let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
 
-function init() {
-    loadCategory(currentCategory);
-    loadHistory();
-    setupEventListeners();
+const EXCHANGE_API_URL = '/api/exchange-rates';
+
+async function fetchExchangeRates() {
+    try {
+        const response = await fetch(EXCHANGE_API_URL);
+        const data = await response.json();
+        if (data.result !== 'success') {
+            throw new Error('Failed to fetch exchange rates');
+        }
+        if (data.conversion_rates) {
+            unitData.currency.units.forEach(unit => {
+                if (unit.id !== 'USD') {
+                    unit.factor = data.conversion_rates[unit.id] || null;
+                }
+            });
+            localStorage.setItem('lastExchangeUpdate', Date.now());
+            localStorage.setItem('exchangeRates', JSON.stringify(data.conversion_rates));
+        }
+    } catch (error) {
+        console.error('Error fetching exchange rates:', error);
+        const lastUpdate = localStorage.getItem('lastExchangeUpdate') || 0;
+        if (Date.now() - lastUpdate > 86400000) { 
+            unitData.currency.units.forEach(unit => {
+                unit.factor = getHardcodedRate(unit.id);
+            });
+        }
+
+        const cachedRates = localStorage.getItem('exchangeRates');
+        if (cachedRates) {
+            const rates = JSON.parse(cachedRates);
+            unitData.currency.units.forEach(unit => {
+                if (unit.id !== 'USD') {
+                    unit.factor = rates[unit.id] || null;
+                }
+            });
+        }
+    }
 }
 
-function loadCategory(category) {
+function convert() {
+    const fromValue = parseFloat(fromValueInput.value);
+    if (isNaN(fromValue)) {
+        toValueInput.value = '';
+        formulaDisplay.textContent = '-';
+        return;
+    }
+    const fromUnit = fromUnitSelect.value;
+    const toUnit = toUnitSelect.value;
+    const category = currentCategory;
+    let result;
+    let formula;
+
+    if (category === 'temperature') {
+        result = convertTemperature(fromValue, fromUnit, toUnit);
+        formula = getTemperatureFormula(fromUnit, toUnit);
+    } else if (category === 'currency') {
+        const fromFactor = unitData[category].units.find(u => u.id === fromUnit).factor || 1;
+        const toFactor = unitData[category].units.find(u => u.id === toUnit).factor || 1;
+        result = (fromValue / fromFactor) * toFactor;
+        formula = `${fromValue} ${fromUnit} × (1/${fromFactor.toFixed(4)} USD) × ${toFactor.toFixed(4)} = ${result.toFixed(2)} ${toUnit}`;
+    } else {
+        const fromFactor = unitData[category].units.find(u => u.id === fromUnit).factor;
+        const toFactor = unitData[category].units.find(u => u.id === toUnit).factor;
+        result = (fromValue * fromFactor) / toFactor;
+        formula = `(${fromValue} × ${fromFactor}) ÷ ${toFactor} = ${result.toFixed(6)}`;
+    }
+    
+    toValueInput.value = formatResult(result);
+    formulaDisplay.textContent = formula;
+    addToHistory(fromValue, fromUnit, toUnit, result, category);
+}
+
+async function loadCategory(category) {
     currentCategory = category;
     fromUnitSelect.innerHTML = '';
     toUnitSelect.innerHTML = '';
+
+    if (category === 'currency') {
+        await fetchExchangeRates();
+    }
+    
     unitData[category].units.forEach(unit => {
         const fromOption = document.createElement('option');
         fromOption.value = unit.id;
@@ -166,32 +252,6 @@ function loadCategory(category) {
     categoryButtons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.category === category);
     });
-}
-
-function convert() {
-    const fromValue = parseFloat(fromValueInput.value);
-    if (isNaN(fromValue)) {
-        toValueInput.value = '';
-        formulaDisplay.textContent = '-';
-        return;
-    }
-    const fromUnit = fromUnitSelect.value;
-    const toUnit = toUnitSelect.value;
-    const category = currentCategory;
-    let result;
-    let formula;
-    if (category === 'temperature') {
-        result = convertTemperature(fromValue, fromUnit, toUnit);
-        formula = getTemperatureFormula(fromUnit, toUnit);
-    } else {
-        const fromFactor = unitData[category].units.find(u => u.id === fromUnit).factor;
-        const toFactor = unitData[category].units.find(u => u.id === toUnit).factor;
-        result = (fromValue * fromFactor) / toFactor;
-        formula = `(${fromValue} × ${fromFactor}) ÷ ${toFactor} = ${result.toFixed(6)}`;
-    }
-    toValueInput.value = formatResult(result);
-    formulaDisplay.textContent = formula;
-    addToHistory(fromValue, fromUnit, toUnit, result, category);
 }
 
 function convertTemperature(value, fromUnit, toUnit) {
@@ -337,3 +397,32 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+function init() {
+    if (currentCategory === 'currency') {
+        fetchExchangeRates();
+    }
+    loadCategory(currentCategory);
+    loadHistory();
+    setupEventListeners();
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('SW registered:', registration))
+            .catch(error => console.log('SW registration failed:', error));
+    }
+}
+
+function getHardcodedRate(currency) {
+    const rates = {
+        EUR: 0.85,
+        GBP: 0.73,
+        JPY: 110.15,
+        CNY: 6.45,
+        INR: 73.5,
+        AUD: 1.32,
+        CAD: 1.25,
+        EGP: 30.85
+    };
+    return rates[currency] || 1;
+}
