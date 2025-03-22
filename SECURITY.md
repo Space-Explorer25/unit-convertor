@@ -4,7 +4,7 @@
 We take the security of this project very seriously and are committed to continuously improving it. If you discover any security vulnerability in this project, please refrain from disclosing it publicly. Instead, contact us privately so that we can address the issue promptly.
 
 ### How to Report a Security Vulnerability
-- Send us the full details of the vulnerability via email at: [security@yourdomain.com](mailto:security@yourdomain.com)
+- Send us the full details of the vulnerability via email at: [Mail](mailto:unshreif@gmail.com)
 - Please include a clear explanation of how you discovered the vulnerability and steps to reproduce the issue.
 - If possible, provide code samples or screenshots to help illustrate the problem.
 
