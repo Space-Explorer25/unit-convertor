@@ -8,8 +8,7 @@ const unitData = {
             { id: 'CNY', name: 'Chinese Yuan (CNY)', factor: null },
             { id: 'INR', name: 'Indian Rupee (INR)', factor: null },
             { id: 'AUD', name: 'Australian Dollar (AUD)', factor: null },
-            { id: 'CAD', name: 'Canadian Dollar (CAD)', factor: null },
-            { id: 'EGP', name: 'Egyptian Pound (EGP)', factor: null }
+            { id: 'CAD', name: 'Canadian Dollar (CAD)', factor: null }
         ],
         baseUnit: 'USD',
         formulas: {}
@@ -422,7 +421,6 @@ function getHardcodedRate(currency) {
         INR: 86,
         AUD: 1.59,
         CAD: 1.44,
-        EGP: 50.27
     };
     return rates[currency] || 1;
 }
