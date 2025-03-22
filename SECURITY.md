@@ -24,5 +24,3 @@ When you report a security vulnerability, we will keep the information confident
 If you have any questions or need further clarification, please reach out to us at [mail](mailto:unshreif@gmail.com).
 
 ---
-
-*Note: This is a generic template. It is recommended to customize it to suit your project's specific security processes and requirements.*
