@@ -153,7 +153,7 @@ const themeToggle = document.querySelector('.theme-toggle');
 let currentCategory = 'length';
 let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
 
-const EXCHANGE_API_URL = 'https://v6.exchangerate-api.com/v6/2174b2e8ec824770f14b314c/latest/USD';
+const EXCHANGE_API_URL = '/api/exchange-rates';
 
 async function fetchExchangeRates() {
     try {
@@ -173,6 +173,22 @@ async function fetchExchangeRates() {
         }
     } catch (error) {
         console.error('Error fetching exchange rates:', error);
+        const lastUpdate = localStorage.getItem('lastExchangeUpdate') || 0;
+        if (Date.now() - lastUpdate > 86400000) { 
+            unitData.currency.units.forEach(unit => {
+                unit.factor = getHardcodedRate(unit.id);
+            });
+        }
+
+        const cachedRates = localStorage.getItem('exchangeRates');
+        if (cachedRates) {
+            const rates = JSON.parse(cachedRates);
+            unitData.currency.units.forEach(unit => {
+                if (unit.id !== 'USD') {
+                    unit.factor = rates[unit.id] || null;
+                }
+            });
+        }
     }
 }
 
@@ -395,4 +411,18 @@ function init() {
             .then(registration => console.log('SW registered:', registration))
             .catch(error => console.log('SW registration failed:', error));
     }
+}
+
+function getHardcodedRate(currency) {
+    const rates = {
+        EUR: 0.92,
+        GBP: 0.77,
+        JPY: 149,
+        CNY: 7.25,
+        INR: 86,
+        AUD: 1.59,
+        CAD: 1.44,
+        EGP: 50.27
+    };
+    return rates[currency] || 1;
 }
