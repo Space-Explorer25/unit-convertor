@@ -25,6 +25,12 @@
     border-color: var(--border-color); 
 }
 
+.dark-theme input {
+    background-color: var(--background-color); 
+    color: var(--text-color); 
+    border-color: var(--border-color); 
+}
+
 * {
     margin: 0;
     padding: 0;
